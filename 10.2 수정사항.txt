@@ -1,0 +1,20 @@
+<10.2 수정사항>
+
+*start class
+1. waiting에서 순위표가 최신화되려면 LogIn, register, start중 하나에서 waiting객체의 update_rank()를
+   호출해야하는데 start는 이미 container에 LogIn, waiting, ingame을 add해주는 과정에서 생성자를 선언하기
+   때문에 start에서 각 객체들을 내부 변수로 만들고 이것을 add해주는 것이 효율적이라고 판단하여 수정하였다.
+   임시적으로 changePanel을 호출할때 waiting의 update_rank()를 호출하도록 하였다.
+
+2. changePanel 메소드에서 waiting 객체의 update_rank 메소드 호출 추가
+
+*waiting class
+1. 방 버튼인 r1, r2, r3, r4를 JButton 배열인 r[]로 교체.
+
+2. room_num 변수를 임시적으로 static으로 바꾸고 getRoom_num 메소드와 rn_increase 메소드를 static으로 추가.
+   이 세가지 변경사항은 make_room class에서 방을 만들때마다 waiting class의 방 버튼 배열을 하나씩 활성화
+   시키기 위함이다.
+
+3. 활성화된 방 버튼이 4개가 됬을때는 방만들기 버튼을 클릭하면 "더 이상 방을 생성할 수 없습니다!"라는 문구가
+   뜨게 만듬. 그리고 ActionListener에 방 버튼 배열을 추가, 활성화된 방 버튼을 누르면 게임 내부로 입장 가능.
+
