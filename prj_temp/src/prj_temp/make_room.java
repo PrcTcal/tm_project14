@@ -17,6 +17,10 @@ public class make_room extends JPanel{
 				n.dispose();
 				F.changePanel();
 				F.setTitle("Catch-ur-Crayon");
+				if(waiting.getRoom_num() <4) {
+					waiting.r[waiting.getRoom_num()].setEnabled(true);
+					waiting.rn_increase(1);
+				}
 			} else {
 				n.dispose();
 			}
