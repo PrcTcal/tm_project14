@@ -3,6 +3,7 @@ import javax.swing.*;
 import Starter.Application;
 import Model.DB;
 import Model.waiting;
+import Model.Music;
 import View.RegisterView;
 import View.WaitingView;
 import View.MakeRoomView;
@@ -39,8 +40,9 @@ public class WaitingControler {
 				} else {
 					JOptionPane.showMessageDialog(null, "더 이상 방을 생성할 수 없습니다!");
 				}
-			// 취소 버튼 선택시
+			// 종료 버튼 선택시
 			} else if(event.getSource() == view.getExit()){
+				app.offMusic();
 				app.dispose();
 			// 방 버튼 선택시
 			} else {
@@ -50,7 +52,7 @@ public class WaitingControler {
 						// 대기실 모델에 선택한 방이 몇번방인지 저장
 						w.setSelect(i);
 						// 선택한 방에 비밀번호가 설정되있지 않을시
-						if(ic.getPW(i) == ""){
+						if(ic.getPW(i).equals("")){
 							JOptionPane.showMessageDialog(null, "방에 입장합니다");
 							app.changePanel();
 							app.setTitle("방제목 : " + ic.getTitle(i));
