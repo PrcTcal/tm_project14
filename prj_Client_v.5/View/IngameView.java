@@ -167,7 +167,7 @@ public class IngameView extends JPanel{
 				timer_l.setFont(font);
 				timer_l.setBounds(640, 15, 100, 50);
 				
-				round_l = new JLabel("5라운드");
+				round_l = new JLabel("1 라운드");
 				round_l.setBounds(800, 15, 50, 50);
 				
 				// ui패널에 삽입하는 부분.

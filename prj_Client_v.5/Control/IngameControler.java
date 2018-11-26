@@ -30,7 +30,7 @@ public class IngameControler {
 	
 	// timer thread 실험용 변수
 	private boolean check = false;
-	private int round = 5;
+	private int round = 1;
 	
 	private Ingame []i;		// 게임 방 객체(Ingame 모델)
 	
@@ -154,15 +154,23 @@ public class IngameControler {
 				app.offMusic();
 				app.dispose();
 			} else if(event.getSource() == iv.getChat_tx()) {
-				
-				if(iv.getChat_tx().getText().equals(iv.getQuestion_tx().getText())) {
-					check = true;
-				}
+							
 				iv.setSendchat_s(iv.getChat_tx().getText());
 				iv.getChat_txa().append("ID: " + iv.getSendchat_s() + "\n");
 				iv.getChat_txa().setCaretPosition(iv.getChat_txa().getDocument().getLength());
+				if(check_answer(iv.getChat_tx().getText(), round)) {
+					iv.getChat_txa().append("정답입니다!\n");
+				}
 				iv.getChat_tx().setText("");
 				iv.getChat_tx().setCaretPosition(iv.getChat_tx().getText().length());
+				
+				//정답 비교 (서버로 이동해야됨)
+//				if(iv.getChat_tx().getText().equals(iv.getQuestion_tx().getText())) {
+//					check = true;
+//				}
+				
+				//----------------------------------------------------------------------
+				
 			} else if(event.getSource() == iv.getExit_bt()) {
 				JOptionPane.showMessageDialog(null, "대기실로 나갑니다");
 				// 방을 나갈시 방입장 버튼이 비활성화 되어야 함. -> 서버 구현된 후 구현하기.
@@ -304,16 +312,22 @@ public class IngameControler {
 		
 		public void run() {
 			String timerBuffer;
-//			String sqlRecipeProcess_word;
-//			try {
-//				db.connect();
-//				db.read("select word from theme1;");
-
+			String[] sqlRecipeProcess_word = new String[5];
+			try {
+				db.connect();
+				db.read("select word from theme1;");
 				
-				while(round != 0) {
-//					db.rs.next();
-//					sqlRecipeProcess_word = db.rs.getString("word");
-//					iv.getQuestion_tx().setText(sqlRecipeProcess_word);
+				for(int k = 0 ; k < 5 ; k++) {
+					db.rs.next();
+					sqlRecipeProcess_word[k] = db.rs.getString("word");
+				}
+				
+				while(round != 6) {
+					
+					
+					
+					
+					iv.getQuestion_tx().setText(sqlRecipeProcess_word[round - 1]);
 					while(i < 180){
 						timerBuffer = String.format("%02d:%02d", min, sec);
 						
@@ -325,17 +339,16 @@ public class IngameControler {
 						} else if(check == true) {
 //							iv.getChat_txa().append("정답입니다!\n");
 							//iv.getTimer_l().setText("03:00");
-							i = 0;
-							min = 2;
-							sec = 59;
+							
 							check = false;
-							try {
-								this.sleep(1000);
-							}catch(Exception e) {
-							}
+							
 							break;
 						}
+						
+						// 이부분이 서버에서 클라이언트로 timeBuffer를 보내줘야하는 부분
 						iv.getTimer_l().setText(timerBuffer);
+						//---------------------------------------------
+						
 						if(sec == 0) {
 							sec = 59;
 							min--;
@@ -348,39 +361,96 @@ public class IngameControler {
 						}
 						i++;
 					}
+					
+					i = 0;
+					min = 3;
+					sec = 0;
+					
+					// 한 라운드(180초)가 끝나고 다시 타이머 세팅하고 라운드 하나 줄여주는 부분
 					iv.getTimer_l().setText("03:00");
-					round--;
+					round++;
 					iv.getRound_l().setText(Integer.toString(round) + "라운드");
+					//--------------------------------------------------------
 					
 				}
-
-				round = 5;
-				iv.getRound_l().setText("5 라운드");
-				iv.getQuestion_tx().setText("");
 				
-//				db.rs.close();
-//				db.st.close();
-//				db.connection.close();
-//			} catch (SQLException se1) {
-//				se1.printStackTrace();
-//			} catch (Exception ex) {
-//				ex.printStackTrace();
-//			} finally {
-//				try {
-//					if (db.st != null)
-//						db.st.close();
-//				} catch (SQLException se2) {
-//				}
-//				try {
-//					if (db.connection != null)
-//						db.connection.close();
-//				} catch (SQLException se) {
-//					se.printStackTrace();
-//				}
-//			}    
+				// 게임 끝나고 전부 초기화 시키는 부분
+				round = 1;
+				iv.getRound_l().setText("1 라운드");
+				iv.getQuestion_tx().setText("");
+				//-------------------------------------
+				
+				db.rs.close();
+				db.st.close();
+				db.connection.close();
+			} catch (SQLException se1) {
+				se1.printStackTrace();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				try {
+					if (db.st != null)
+						db.st.close();
+				} catch (SQLException se2) {
+				}
+				try {
+					if (db.connection != null)
+						db.connection.close();
+				} catch (SQLException se) {
+					se.printStackTrace();
+				}
+			}    
 		}
 		
 	}
+	
+	// 정답 비교 메소드
+	public boolean check_answer(String msg, int round) {
+		boolean check = false;
+		String sqlRecipeProcess_word = "";
+		int i = 0;
+		try {
+			db.connect();
+			db.read("select word from theme1;");
+
+			while(i != round) {
+				db.rs.next();
+				sqlRecipeProcess_word = db.rs.getString("word");
+				i++;
+			}
+
+			if(msg.equals(sqlRecipeProcess_word)) {
+				check = true;
+				this.check = true;
+				// "정답입니다"를 Client로 뿌려주기
+				// Timer Thread의 시간 초기화 신호 뿌려주기
+			} 
+
+			db.rs.close();
+			db.st.close();
+			db.connection.close();
+		} catch (SQLException se1) {
+			se1.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			try {
+				if (db.st != null)
+					db.st.close();
+			} catch (SQLException se2) {
+			}
+			try {
+				if (db.connection != null)
+					db.connection.close();
+			} catch (SQLException se) {
+				se.printStackTrace();
+			}
+		}    
+		return check;
+	}
+
+	
+	
 	
 	// 게임방 객체의 비밀번호를 가져온다
 	public String getPW(int num) {
